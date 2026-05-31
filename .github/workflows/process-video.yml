@@ -1,0 +1,46 @@
+name: Process and Upload Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      videoUrl:
+        description: 'URL of the Instagram/YouTube video'
+        required: true
+        type: string
+      templateType:
+        description: 'Which format to use (bottom1, bottom2, or watermark)'
+        required: true
+        type: string
+      chatId:
+        description: 'Telegram Chat ID'
+        required: true
+        type: string
+
+jobs:
+  process-video:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install FFMPEG
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Setup Folders
+        run: mkdir -p temp templates
+
+      - name: Run Processing Worker
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: node src/github_worker.js "${{ github.event.inputs.videoUrl }}" "${{ github.event.inputs.templateType }}" "${{ github.event.inputs.chatId }}"
