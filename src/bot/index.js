@@ -53,8 +53,9 @@ const setupBot = () => {
       const response = await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPO}/actions/workflows/process-video.yml/dispatches`, {
         method: 'POST',
         headers: {
-          'Accept': 'application/vnd.github.v3+json',
-          'Authorization': `token ${process.env.GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github+json',
+          'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+          'X-GitHub-Api-Version': '2022-11-28',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
