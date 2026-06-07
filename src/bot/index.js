@@ -77,7 +77,11 @@ const setupBot = () => {
       
     } catch (error) {
       logger.error(`Error triggering GitHub: ${error.message}`);
-      ctx.reply(`❌ Failed to trigger GitHub Action: ${error.message}`);
+      
+      const tokenPrefix = process.env.GITHUB_TOKEN ? process.env.GITHUB_TOKEN.substring(0, 4) + '...' : 'none';
+      const debugInfo = `\n\nDebug Info:\nRepo: "${process.env.GITHUB_REPO}"\nToken Prefix: ${tokenPrefix}`;
+      
+      ctx.reply(`❌ Failed to trigger GitHub Action: ${error.message}${debugInfo}`);
     }
   });
 
