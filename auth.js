@@ -3,8 +3,8 @@ const readline = require('readline');
 require('dotenv').config();
 
 const oauth2Client = new google.auth.OAuth2(
-  process.env.YOUTUBE_CLIENT_ID,
-  process.env.YOUTUBE_CLIENT_SECRET,
+  process.env.YOUTUBE_CLIENT_ID?.trim(),
+  process.env.YOUTUBE_CLIENT_SECRET?.trim(),
   "http://localhost:3000/oauth2callback"
 );
 
