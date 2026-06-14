@@ -25,6 +25,7 @@ const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
 const BOTTOM_TEMPLATE_1 = path.join(TEMPLATES_DIR, 'bottom1.mp4');
 const BOTTOM_TEMPLATE_2 = path.join(TEMPLATES_DIR, 'bottom2.mp4');
+const INFLUENCER_TEMPLATE = path.join(TEMPLATES_DIR, 'Influencer.mp4');
 
 const sendMessage = async (text) => {
   try {
@@ -45,7 +46,11 @@ const sendMessage = async (text) => {
     
     let bottomVideoPath;
     if (!isWatermark) {
-      bottomVideoPath = templateType === 'bottom1' ? BOTTOM_TEMPLATE_1 : BOTTOM_TEMPLATE_2;
+      if (templateType === 'bottom1') bottomVideoPath = BOTTOM_TEMPLATE_1;
+      else if (templateType === 'bottom2') bottomVideoPath = BOTTOM_TEMPLATE_2;
+      else if (templateType === 'influencer') bottomVideoPath = INFLUENCER_TEMPLATE;
+      else bottomVideoPath = BOTTOM_TEMPLATE_1; // fallback
+
       if (!fs.existsSync(bottomVideoPath)) {
         throw new Error(`Missing template file: ${bottomVideoPath}`);
       }
@@ -69,8 +74,8 @@ const sendMessage = async (text) => {
       cmd.input(bottomVideoPath).seekInput(botStartTime);
       
       cmd.complexFilter([
-        '[0:v]scale=1080:1344:force_original_aspect_ratio=decrease,pad=1080:1344:(ow-iw)/2:(oh-ih)/2,setsar=1[orig]',
-        '[1:v]scale=1080:576:force_original_aspect_ratio=decrease,pad=1080:576:(ow-iw)/2:(oh-ih)/2,setsar=1[bot]',
+        '[0:v]scale=1080:1344:force_original_aspect_ratio=increase,crop=1080:1344,setsar=1[orig]',
+        '[1:v]scale=1080:576:force_original_aspect_ratio=increase,crop=1080:576,setsar=1[bot]',
         '[orig][bot]vstack=inputs=2[main_v]'
       ]);
     }
@@ -93,11 +98,36 @@ const sendMessage = async (text) => {
 
     await sendMessage(`✅ Video edited successfully! Now uploading to YouTube...`);
 
+    const captions = [
+      {
+        title: `This is too funny! 😂 Wait for it... #shorts`,
+        description: `I can't stop laughing at this! 💀 Drop a comment if you laughed! 👇\n\n#funny #comedy #viral #trending #shorts #reactionvideo`
+      },
+      {
+        title: `I wasn't expecting THAT! 🤣 #shorts`,
+        description: `Bro what even is this?! 😭 Tag a friend who needs to see this! 👇\n\n#funny #viral #comedy #shorts #lol #reaction`
+      },
+      {
+        title: `This actually had me dying! 💀😂 #shorts`,
+        description: `Wait until the end... 🤯 What do you guys think? 👇\n\n#funnyvideo #comedy #viral #trending #shorts #lmao`
+      },
+      {
+        title: `Bro really thought he did something 😂 #shorts`,
+        description: `I'm crying right now! 🤣 Let me know your thoughts below! 👇\n\n#funny #viral #trending #shorts #comedy #reactionvideo`
+      },
+      {
+        title: `Watch until the end! 🤣 Wait for it... #shorts`,
+        description: `This is the funniest thing I've seen all day! 💀 Comment below! 👇\n\n#funny #comedy #viral #trending #shorts #lol`
+      }
+    ];
+
+    const randomCaption = captions[Math.floor(Math.random() * captions.length)];
+
     const ytData = await uploadVideo(outputVideoPath, {
-      title: `Trending Reel ${Date.now()} #shorts`,
-      description: `Original URL: ${url}\n\n#shorts #trending`,
-      tags: ['shorts', 'trending', 'reels'],
-      privacyStatus: 'private' 
+      title: randomCaption.title,
+      description: randomCaption.description,
+      tags: ['shorts', 'funny', 'viral', 'trending', 'comedy', 'reels', 'reaction'],
+      privacyStatus: 'public' 
     });
 
     await sendMessage(`🎉 Upload complete!\nYouTube Video ID: ${ytData.id}\nOriginal URL: ${url}`);
